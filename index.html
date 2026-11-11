@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le cortège électronique — Laboratoire virtuel (Z = 1 à 36)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Fira+Code:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#174ea6;--blue2:#2563eb;--cyan:#dff3ff;--ink:#172033;--muted:#64748b;--line:#d9e2ef;--bg:#f4f7fb;--green:#15803d;--red:#b91c1c;--gold:#f59e0b}
+*{box-sizing:border-box}body{margin:0;font-family:'Inter',Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#102a56,#1d5bb8);color:white;padding:22px clamp(16px,4vw,48px)}
+header h1{margin:0 0 7px;font-size:clamp(24px,4vw,34px)}header p{margin:0;color:#dbeafe;max-width:900px;line-height:1.5}
+nav{display:flex;gap:8px;flex-wrap:wrap;padding:12px clamp(12px,4vw,48px);background:white;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+nav button,.btn{border:0;border-radius:9px;padding:10px 14px;background:#e8eef8;color:#17345f;font-weight:700;cursor:pointer;transition:0.2s}
+nav button.active,.btn.primary{background:var(--blue);color:white}button:hover{filter:brightness(.97)}
+main{max-width:1300px;margin:22px auto;padding:0 16px 48px}
+.panel{display:none}.panel.active{display:block}
+.card{background:white;border:1px solid var(--line);border-radius:15px;padding:18px;margin-bottom:16px;box-shadow:0 4px 14px #1e3a5f0a}
+h2{margin:0 0 12px;color:#153d78;font-size:23px}h3{margin:0 0 10px;color:#1e3a5f}
+.muted{color:var(--muted);line-height:1.5}.row{display:flex;gap:16px;flex-wrap:wrap}.col{flex:1 1 300px}
+label{font-weight:700;display:block;margin:7px 0}
+select,input[type=number]{padding:10px;border:1px solid #bdcbe0;border-radius:8px;font-size:16px;max-width:100%;background:white}
+.element-select{min-width:230px}.element-card{display:flex;align-items:center;gap:15px;background:#edf5ff;border:1px solid #bfdbfe;border-radius:12px;padding:14px;margin:12px 0}
+.symbol{font-size:35px;font-weight:800;color:#164e9b;min-width:55px;text-align:center;font-family:'Fira Code',monospace}.element-meta{line-height:1.5}
+canvas{max-width:100%;background:#fbfdff;border:1px solid var(--line);border-radius:12px}
+.shell-info{display:flex;gap:8px;flex-wrap:wrap}.shell{padding:10px 13px;border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;min-width:82px;text-align:center}
+.shell strong{display:block;font-size:22px;color:#1d4ed8}
+.mapping{margin-top:12px;padding:12px;background:#f8fbff;border:1px solid var(--line);border-radius:10px;max-width:460px}
+.mapping>b{display:block;margin-bottom:8px;color:#1e3a5f}
+.mapping>div{display:flex;justify-content:space-between;gap:12px;padding:5px 2px;border-top:1px solid #e2e8f0}
+.mapping strong{color:#174ea6;font-family:'Fira Code',monospace}.mapping small{font-weight:400;color:var(--muted)}
+.orbitals{display:flex;gap:7px;flex-wrap:wrap;align-items:end;margin:12px 0}
+.orbital-group{padding:9px;border:1px solid var(--line);border-radius:10px;background:#fafcff}
+.orbital-label{text-align:center;font-weight:700;color:#334155;margin-bottom:7px;font-family:'Fira Code',monospace}
+.boxes{display:flex;gap:4px}
+.manip-status{max-width:520px;margin:12px 0}
+.manip-status>div:first-child{display:flex;justify-content:space-between;margin-bottom:6px}
+.manip-status #placedCount{font-weight:700;color:#174ea6}
+.electron-tray{display:flex;gap:8px;flex-wrap:wrap;min-height:48px;padding:9px;border:1px dashed #93a9c7;border-radius:10px;background:#f8fbff}
+.electron-token{width:32px;height:32px;border:0;border-radius:50%;background:#174ea6;color:white;font-size:20px;font-weight:bold;cursor:grab;display:grid;place-items:center;box-shadow:0 1px 3px #17203335}
+.electron-token.chosen{outline:3px solid #f59e0b;outline-offset:2px}
+.drop-orb{width:38px;height:44px;border:2px solid #64748b;border-radius:7px;background:white;display:flex;align-items:center;justify-content:center;gap:1px;cursor:pointer;color:#b42318;font-size:17px;font-weight:bold}
+.drop-orb.filled{background:#eff6ff}
+.drop-orb .spin{font-size:16px}.drop-orb .spin.second{color:#d97706}
+.orb{width:38px;height:38px;border:2px solid #64748b;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#b42318;background:white}
+
+/* TABLEAU PÉRIODIQUE CLASSIQUE (18 COLONNES) */
+.periodic{display:grid;grid-template-columns:repeat(18,minmax(42px,1fr));gap:4px;overflow-x:auto;padding-bottom:10px}
+.ptcell{border:1px solid #b9c9dd;border-radius:6px;background:#f1f6ff;min-height:56px;padding:3px;text-align:center;cursor:pointer;display:flex;flex-direction:column;justify-content:center}
+.ptcell:hover,.ptcell.selected{outline:3px solid #60a5fa;background:#dbeafe}
+.ptcell .n{font-size:9px;color:#64748b;line-height:1}.ptcell b{font-size:15px;display:block;color:#174ea6;font-family:'Fira Code',monospace;margin:2px 0}.ptcell small{font-size:8px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{visibility:hidden;border:0;background:none;min-height:auto}
+
+.task{border-left:4px solid var(--blue2);padding:10px 13px;background:#f5f9ff;border-radius:0 8px 8px 0;margin:12px 0}
+.feedback{padding:10px 12px;border-radius:9px;margin-top:10px;display:none}.good{display:block;background:#dcfce7;color:#166534}.bad{display:block;background:#fee2e2;color:#991b1b}
+.answerline{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.progress{height:9px;background:#e2e8f0;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:#2563eb;width:0}
+
+/* STYLES DES SOUS-COUCHES ET CANVASES 3D */
+.subshell-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:18px 0}
+.subshell{border:1px solid var(--line);border-radius:13px;padding:15px;text-align:center;background:#fbfdff}
+.subshell h3{font-size:30px;margin:0 0 6px}
+.subshell.s h3{color:#2563eb}.subshell.p h3{color:#0f8b68}.subshell.d h3{color:#c08416}.subshell.f h3{color:#7952a3}
+
+.canvas-3d-wrapper{position:relative;width:140px;height:140px;margin:6px auto 10px;cursor:grab}
+.canvas-3d-wrapper:active{cursor:grabbing}
+.canvas-3d-wrapper canvas{width:100%;height:100%;border-radius:8px;background:#0f172a;border:1px solid var(--line)}
+
+.orbital-boxes{display:flex;justify-content:center;gap:4px;margin:8px auto}
+.orbital-boxes span{width:22px;height:22px;border:2px solid currentColor;border-radius:3px;display:block}
+.subshell.s .orbital-boxes span{color:#2563eb}
+.subshell.p .orbital-boxes span{color:#0f8b68}
+.subshell.d .orbital-boxes span{color:#c08416}
+.subshell.f .orbital-boxes span{color:#7952a3}
+
+/* STYLING SCHÉMA DE KLECHKOWSKI ANIMÉ AVEC FLÈCHES VERS LE BAS */
+.klechkowski-visual-container{display:flex;gap:24px;flex-wrap:wrap;align-items:center;justify-content:center;background:#e2e8f0;border-radius:12px;padding:20px;margin:14px 0;border:1px solid var(--line)}
+.klech-matrix-box{display:grid;grid-template-columns:repeat(4,56px);grid-template-rows:repeat(7,46px);gap:8px;position:relative;background:#cbd5e1;padding:14px;border-radius:10px}
+.k-cell{background:white;border:2px solid #1e293b;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Fira Code',monospace;font-weight:700;font-size:15px;color:#1e293b;z-index:2;transition:all 0.3s ease}
+.k-cell.active-highlight{background:#2563eb;color:white;border-color:#60a5fa;transform:scale(1.1);box-shadow:0 0 12px rgba(37,99,235,0.6)}
+
+.cell-1s{grid-column:1;grid-row:1}
+.cell-2s{grid-column:1;grid-row:2}.cell-2p{grid-column:2;grid-row:2}
+.cell-3s{grid-column:1;grid-row:3}.cell-3p{grid-column:2;grid-row:3}.cell-3d{grid-column:3;grid-row:3}
+.cell-4s{grid-column:1;grid-row:4}.cell-4p{grid-column:2;grid-row:4}.cell-4d{grid-column:3;grid-row:4}.cell-4f{grid-column:4;grid-row:4}
+.cell-5s{grid-column:1;grid-row:5}.cell-5p{grid-column:2;grid-row:5}.cell-5d{grid-column:3;grid-row:5}.cell-5f{grid-column:4;grid-row:5}
+.cell-6s{grid-column:1;grid-row:6}.cell-6p{grid-column:2;grid-row:6}.cell-6d{grid-column:3;grid-row:6}
+.cell-7s{grid-column:1;grid-row:7}.cell-7p{grid-column:2;grid-row:7}
+
+.klech-svg-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3}
+
+.rule-list{display:grid;gap:18px}.rule-list article{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start}
+.rule-number{width:36px;height:36px;border-radius:50%;background:#174ea6;color:white;display:grid;place-items:center;font-weight:bold;font-size:18px}
+.animated-sequence{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:12px;background:#eef5ff;border-radius:10px;margin:12px 0;font-weight:bold;font-family:'Fira Code',monospace}
+.animated-sequence span{color:#64748b}.animated-sequence .current{background:#174ea6;color:white;padding:5px 8px;border-radius:6px;animation:pulseStep 1s infinite alternate}
+@keyframes pulseStep{from{transform:scale(1)}to{transform:scale(1.12);box-shadow:0 0 0 5px #bfdbfe}}
+
+.pauli-demo,.hund-demo{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.pauli-demo span,.hund-demo span{display:inline-grid;place-items:center;min-width:42px;height:42px;border:2px solid #2563eb;border-radius:6px;font-size:24px;color:#174ea6;background:white}
+.pauli-demo .forbidden{border-color:#b91c1c;color:#b91c1c;text-decoration:line-through}
+.hund-demo div{display:flex;gap:5px}.hund-demo small{color:var(--muted);margin-right:10px}
+footer{text-align:center;color:#64748b;font-size:12px;padding:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Laboratoire virtuel de physique-chimie — Le cortège électronique  : Developed by Prof. AL KWATLI D.M.A. (E-mail: dr.alkwatli@gmail.com)</h1>
+  <p> Les trois règles de remplissage — Les 4 premières lignes (périodes) du tableau périodique des éléments — Extension jusqu'à Z = 36 .</p>
+</header>
+<nav class="no-print">
+  <button class="active" data-tab="explorer">1. Explorer La configuration électronique d'un atome</button>
+  <button data-tab="regles">2. Les trois règles</button>
+  <button data-tab="config">3. Atelier (Configurations électroniques)</button>
+  <button data-tab="tableau">4. Tableau périodique</button>
+  <button data-tab="mission">5. Mission QCM</button>
+</nav>
+<main>
+
+<!-- SECTION 1 -->
+<section id="explorer" class="panel active">
+ <div class="card">
+  <h2>1. Choisir un atome et observer ses électrons (jusqu'à Z = 36)</h2>
+  <p class="muted">Sélectionne un élément jusqu'au Krypton (Z = 36). Le nombre d’électrons d’un atome neutre est égal à son numéro atomique Z.</p>
+  <div class="row">
+   <div class="col">
+    <label for="element">Élément chimique</label>
+    <select id="element" class="element-select"></select>
+    <div id="elementCard" class="element-card"></div>
+    <div class="shell-info" id="shellInfo"></div>
+   </div>
+   <div class="col">
+    <h3>Représentation concentrique des couches (K à Q)</h3>
+    <canvas id="atomCanvas" width="460" height="390"></canvas>
+    <div class="mapping">
+     <b>Lien entre couches et sous-couches principales</b>
+     <div><span>K (n = 1)</span><strong>1s</strong></div>
+     <div><span>L (n = 2)</span><strong>2s, 2p</strong></div>
+     <div><span>M (n = 3)</span><strong>3s, 3p, 3d</strong></div>
+     <div><span>N (n = 4)</span><strong>4s, 4p</strong></div>
+    </div>
+   </div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+   <h3>Visualisation simultanée des sous-couches</h3>
+   <div id="explorerOrbitalView" class="orbitals"></div>
+  </div>
+ </div>
+</section>
+
+<!-- SECTION 2: FORMES 3D INTERACTIVES ET LES TROIS RÈGLES DE REMPLISSAGE -->
+<section id="regles" class="panel">
+ <div class="card">
+  <h2>Les sous-couches électroniques : s, p, d et f</h2>
+  <p class="muted">Chaque carte affiche la représentation 3D animée des orbitales. Pour la sous-couche <b>p</b>, les 3 orbitales (p_x, p_y, p_z) sont affichées de manière claire, orthogonale et perpendiculaire selon les axes $x, y, z$. <i>Cliquez et glissez la souris pour faire pivoter les formes dans l'espace.</i></p>
+  
+  <div class="subshell-grid">
+   <!-- S -->
+   <article class="subshell s">
+    <h3>s</h3>
+    <div class="canvas-3d-wrapper"><canvas id="canvas-s" width="140" height="140"></canvas></div>
+    <div class="orbital-boxes"><span></span></div>
+    <b>1 orbitale · 2 e⁻ max</b>
+    <p>m = 0 · une orientation</p>
+   </article>
+   <!-- P -->
+   <article class="subshell p">
+    <h3>p</h3>
+    <div class="canvas-3d-wrapper"><canvas id="canvas-p" width="140" height="140"></canvas></div>
+    <div class="orbital-boxes"><span></span><span></span><span></span></div>
+    <b>3 orbitales · 6 e⁻ max</b>
+    <p>m = −1, 0, +1 · trois orientations</p>
+   </article>
+   <!-- D -->
+   <article class="subshell d">
+    <h3>d</h3>
+    <div class="canvas-3d-wrapper"><canvas id="canvas-d" width="140" height="140"></canvas></div>
+    <div class="orbital-boxes"><span></span><span></span><span></span><span></span><span></span></div>
+    <b>5 orbitales · 10 e⁻ max</b>
+    <p>m = −2 à +2 · cinq orientations</p>
+   </article>
+   <!-- F -->
+   <article class="subshell f">
+    <h3>f</h3>
+    <div class="canvas-3d-wrapper"><canvas id="canvas-f" width="140" height="140"></canvas></div>
+    <div class="orbital-boxes"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <b>7 orbitales · 14 e⁻ max</b>
+    <p>m = −3 à +3 · sept orientations</p>
+   </article>
+  </div>
+ </div>
+
+ <div class="card">
+  <h2>Les trois règles de remplissage</h2>
+  <div class="rule-list">
+   <article>
+    <div class="rule-number">1</div>
+    <div>
+     <h3>Règle de Klechkowski (ordre énergétique)</h3>
+     <p>La règle de Klechkowski (ou règle de Madelung) établit l’ordre de remplissage des orbitales électroniques selon la somme n + ℓ, puis selon n en cas d’égalité. Elle permet de déterminer la configuration électronique des atomes dans leur état fondamental. 
+
+
+Principe fondamental : la règle (n + ℓ),
+n : nombre quantique principal (n ≥ 1),
+
+ℓ : nombre quantique azimutal (0 ≤ ℓ ≤ n − 1),
+
+Les sous-couches sont classées par ordre croissant de (n + ℓ).
+
+Si deux sous-couches ont la même valeur de (n + ℓ), celle avec le plus petit n se remplit en premier.</p>
+     
+     <div class="klechkowski-visual-container">
+      <div class="klech-matrix-box" id="klechMatrix">
+       <div class="k-cell cell-1s" data-sub="1s">1s</div>
+       <div class="k-cell cell-2s" data-sub="2s">2s</div><div class="k-cell cell-2p" data-sub="2p">2p</div>
+       <div class="k-cell cell-3s" data-sub="3s">3s</div><div class="k-cell cell-3p" data-sub="3p">3p</div><div class="k-cell cell-3d" data-sub="3d">3d</div>
+       <div class="k-cell cell-4s" data-sub="4s">4s</div><div class="k-cell cell-4p" data-sub="4p">4p</div><div class="k-cell cell-4d" data-sub="4d">4d</div><div class="k-cell cell-4f" data-sub="4f">4f</div>
+       <div class="k-cell cell-5s" data-sub="5s">5s</div><div class="k-cell cell-5p" data-sub="5p">5p</div><div class="k-cell cell-5d" data-sub="5d">5d</div><div class="k-cell cell-5f" data-sub="5f">5f</div>
+       <div class="k-cell cell-6s" data-sub="6s">6s</div><div class="k-cell cell-6p" data-sub="6p">6p</div><div class="k-cell cell-6d" data-sub="6d">6d</div>
+       <div class="k-cell cell-7s" data-sub="7s">7s</div><div class="k-cell cell-7p" data-sub="7p">7p</div>
+
+       <!-- Flèches orientées vers le bas (de haut-droite vers bas-gauche) -->
+       <svg class="klech-svg-overlay" viewBox="0 0 280 380">
+        <g stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+         <path d="M 55 10 L 15 50"/> <polygon points="15,50 22,43 20,50" fill="#ef4444"/>
+         <path d="M 105 10 L 15 100"/> <polygon points="15,100 22,93 20,100" fill="#ef4444"/>
+         <path d="M 155 10 L 15 150"/> <polygon points="15,150 22,143 20,150" fill="#ef4444"/>
+         <path d="M 210 20 L 15 215"/> <polygon points="15,215 22,208 20,215" fill="#ef4444"/>
+         <path d="M 210 80 L 15 275"/> <polygon points="15,275 22,268 20,275" fill="#ef4444"/>
+         <path d="M 160 190 L 15 335"/> <polygon points="15,335 22,328 20,335" fill="#ef4444"/>
+         <path d="M 110 290 L 45 355"/> <polygon points="45,355 52,348 50,355" fill="#ef4444"/>
+        </g>
+       </svg>
+      </div>
+      
+      <div style="flex:1; min-width:260px;">
+       <h3>Séquence énergétique complète (1s → 7p)</h3>
+       <div class="animated-sequence" id="fillingAnimation">1s → 2s → 2p → 3s → 3p → 4s → 3d → 4p → 5s → 4d → 5p → 6s → 4f → 5d → 6p → 7s → 5f → 6d → 7p</div>
+      </div>
+     </div>
+    </div>
+   </article>
+
+   <article>
+    <div class="rule-number">2</div>
+    <div>
+     <h3>Principe d’exclusion de Pauli</h3>
+     <p>Une orbitale contient au maximum <b>2 électrons</b>, obligatoirement de spins opposés : <b>↑↓</b>.</p>
+     <div class="pauli-demo"><span>↑↓</span><small>autorisé</small><span class="forbidden">↑↑</span><small>interdit</small></div>
+    </div>
+   </article>
+
+   <article>
+    <div class="rule-number">3</div>
+    <div>
+     <h3>Règle de Hund</h3>
+     <p>Dans des orbitales de même énergie, on place d’abord un électron par orbitale avec des spins parallèles avant d’apparier.</p>
+     <div class="hund-demo">
+      <div><span>↑</span><span>↑</span><span>↑</span></div><small>Avant l’appariement</small>
+      <div><span>↑↓</span><span>↑</span><span>↑</span></div><small>Ensuite seulement</small>
+     </div>
+    </div>
+   </article>
+  </div>
+ </div>
+</section>
+
+<!-- SECTION 3 -->
+<section id="config" class="panel">
+ <div class="card">
+  <h2>2. Construire la configuration électronique (jusqu'à Z = 36)</h2>
+  <label for="element2">Choisir un élément</label><select id="element2" class="element-select"></select>
+  <div id="configSummary" class="element-card"></div>
+  <h3>Cases quantiques</h3>
+  <div id="orbitalView" class="orbitals"></div>
+ </div>
+ <div class="card" id="manipulation">
+  <h3>Atelier de manipulation — Construis le cortège électronique</h3>
+  <div class="answerline">
+   <label for="manualZ">Nombre d’électrons (1 à 36) :</label>
+   <input id="manualZ" type="number" min="1" max="36" value="7">
+   <button class="btn primary" id="buildManual" type="button">Commencer</button>
+  </div>
+  <div class="manip-status">
+   <div><b>Électrons placés</b><span id="placedCount">0 / 7</span></div>
+   <div class="progress"><span id="placedProgress"></span></div>
+  </div>
+  <h3>Électrons disponibles</h3>
+  <div id="electronTray" class="electron-tray"></div>
+  <h3>Cases quantiques à compléter (jusqu'à 4p)</h3>
+  <div id="manualView" class="orbitals"></div>
+  <div class="answerline">
+   <button class="btn" id="undoElectron" type="button">Annuler</button>
+   <button class="btn" id="resetManip" type="button">Effacer</button>
+   <button class="btn primary" id="checkManip" type="button">Vérifier</button>
+  </div>
+  <div id="manualFeedback" class="feedback"></div>
+ </div>
+</section>
+
+<!-- SECTION 4 : TABLEAU PÉRIODIQUE CLASSIQUE (18 COLONNES) -->
+<section id="tableau" class="panel">
+ <div class="card">
+  <h2>3. Tableau périodique classique (Éléments 1 à 36)</h2>
+  <p class="muted">Disposition standard en 18 colonnes (groupes) et 4 lignes (périodes). Les éléments du bloc d (Sc à Zn) possèdent rigoureusement 4 couches principales occupées (K, L, M, N).</p>
+  <div id="periodic" class="periodic"></div>
+  <div id="periodicInfo" class="task" style="margin-top:12px;">Sélectionne un élément dans le tableau.</div>
+ </div>
+</section>
+
+<!-- SECTION 5 -->
+<section id="mission" class="panel">
+ <div class="card">
+  <h2>4. Mes missions — Vérification</h2>
+  <div class="progress"><span id="progressBar"></span></div>
+  <p id="scoreText" class="muted">0 bonne réponse sur 5</p>
+  <div id="questions"></div>
+  <button class="btn primary" id="checkQuiz">Vérifier mes réponses</button>
+  <div id="quizFeedback" class="feedback"></div>
+ </div>
+</section>
+</main>
+<footer>Laboratoire virtuel de physique-chimie  : Developed by Prof. AL KWATLI D.M.A. (E-mail: dr.alkwatli@gmail.com)</footer>
+
+<script>
+const elements=[
+[1,'H','Hydrogène'],[2,'He','Hélium'],[3,'Li','Lithium'],[4,'Be','Béryllium'],
+[5,'B','Bore'],[6,'C','Carbone'],[7,'N','Azote'],[8,'O','Oxygène'],[9,'F','Fluor'],[10,'Ne','Néon'],
+[11,'Na','Sodium'],[12,'Mg','Magnésium'],[13,'Al','Aluminium'],[14,'Si','Silicium'],[15,'P','Phosphore'],[16,'S','Soufre'],[17,'Cl','Chlore'],[18,'Ar','Argon'],[19,'K','Potassium'],[20,'Ca','Calcium'],
+[21,'Sc','Scandium'],[22,'Ti','Titane'],[23,'V','Vanadium'],[24,'Cr','Chrome'],[25,'Mn','Manganèse'],[26,'Fe','Fer'],[27,'Co','Cobalt'],[28,'Ni','Nickel'],[29,'Cu','Cuivre'],[30,'Zn','Zinc'],
+[31,'Ga','Gallium'],[32,'Ge','Germanium'],[33,'As','Arsenic'],[34,'Se','Sélénium'],[35,'Br','Brome'],[36,'Kr','Krypton']
+];
+const $=id=>document.getElementById(id);
+
+function shells(z){
+ const map = {1:0, 2:0, 3:0, 4:0};
+ const ord = orbitals(z);
+ ord.forEach(g => {
+  const n = parseInt(g.name[0]);
+  const count = g.arr.reduce((a, b) => a + b, 0);
+  if(map[n] !== undefined) map[n] += count;
+  else map[n] = count;
+ });
+ return [map[1], map[2], map[3], map[4], map[5]||0, map[6]||0, map[7]||0];
+}
+
+const orbitalOrder=[['1s',1],['2s',1],['2p',3],['3s',1],['3p',3],['4s',1],['3d',5],['4p',3]];
+
+function orbitals(z){
+ let left=z,out=[];
+ for(const [name,count] of orbitalOrder){
+  const occ=Math.min(left,count*2),arr=Array(count).fill(0);
+  for(let i=0;i<occ;i++)arr[i%count]++;
+  out.push({name,arr});left-=occ;
+ }
+ return out.filter(g=>g.arr.reduce((a,b)=>a+b,0)>0);
+}
+
+function conf(z){return orbitals(z).map(g=>g.name+'<sup>'+g.arr.reduce((a,b)=>a+b,0)+'</sup>').join(' ')}
+function fillSelect(id){$(id).innerHTML=elements.map(e=>`<option value="${e[0]}">${e[1]} — ${e[2]} (Z = ${e[0]})</option>`).join('')}
+fillSelect('element');fillSelect('element2');
+
+function atomCard(z,target){let e=elements[z-1],s=shells(z);$(target).innerHTML=`<div class="symbol">${e[1]}</div><div class="element-meta"><b>${e[2]}</b><br>Numéro atomique Z = ${z}</div>`}
+
+function drawAtom(z){
+ const c=$('atomCanvas'),ctx=c.getContext('2d'),cx=220,cy=195,rs=[36,68,100,132,164],s=shells(z);
+ ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#e8f2ff';ctx.fillRect(0,0,c.width,c.height);
+ const names=['K','L','M','N','O','P','Q'],colors=['#ef4444','#22a06b','#8b5cf6','#d97706','#0284c7','#db2777','#7c3aed'];
+ rs.forEach((r,i)=>{
+  if(i>=s.length || s[i]>0){
+   ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle=colors[i%colors.length];ctx.lineWidth=2;ctx.stroke();
+   ctx.fillStyle='#334155';ctx.font='bold 12px Inter';ctx.fillText(names[i],cx+r-5,cy-7);
+  }
+ });
+ ctx.beginPath();ctx.arc(cx,cy,17,0,Math.PI*2);ctx.fillStyle='#ef4444';ctx.fill();
+ ctx.fillStyle='white';ctx.font='bold 11px Inter';ctx.textAlign='center';ctx.fillText('Noyau',cx,cy+4);ctx.textAlign='left';
+ s.forEach((n,i)=>{if(n>0){for(let j=0;j<n;j++){
+  const angle=-Math.PI/2+j*2*Math.PI/Math.max(n,1),x=cx+rs[i]*Math.cos(angle),y=cy+rs[i]*Math.sin(angle);
+  ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle='#174ea6';ctx.fill();ctx.strokeStyle='white';ctx.stroke();
+ }}});
+}
+
+function updateExplorer(){
+ const z=+$('element').value;
+ $('element2').value=String(z);
+ updateConfig();
+}
+
+function orbitalHTML(z){return orbitals(z).map(g=>`<div class="orbital-group"><div class="orbital-label">${g.name}</div><div class="boxes">${g.arr.map(n=>`<div class="orb">${n===2?'↑↓':n===1?'↑':''}</div>`).join('')}</div></div>`).join('')}
+
+function updateConfig(){
+ const z=+$('element2').value,e=elements[z-1],s=shells(z);
+ const activeShellsNames = ['K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+ const nonZeroShells = s.map((val, idx) => val > 0 ? `${activeShellsNames[idx]} (${val})` : null).filter(Boolean).join(' ; ');
+ 
+ $('configSummary').innerHTML=`<div class="symbol">${e[1]}</div><div><b>${e[2]} — Z = ${z}</b><br>Configuration : <b>${conf(z)}</b><br>Électrons par couche principale (K à Q) : ${nonZeroShells}</div>`;
+ $('orbitalView').innerHTML=orbitalHTML(z);
+ $('element').value=String(z);
+ atomCard(z,'elementCard');
+ const names=['K','L','M','N','O','P','Q'];
+ $('shellInfo').innerHTML=s.map((n,i)=>n>0?`<div class="shell"><span>Couche ${names[i]}</span><strong>${n}</strong></div>`:``).join('');
+ $('explorerOrbitalView').innerHTML=orbitalHTML(z);
+ drawAtom(z);
+}
+$('element').addEventListener('change',updateExplorer);$('element2').addEventListener('change',updateConfig);
+
+/* Atelier Manipulation */
+let targetElectrons=7, placed=[], selectedToken=null, tokenSerial=0;
+
+function expectedSequence(z){
+ const sequence=[];
+ for(const [name,count] of orbitalOrder){
+  const remaining=z-sequence.length; if(remaining<=0)break;
+  const inSubshell=Math.min(count*2,remaining);
+  for(let orbital=0;orbital<count && orbital<inSubshell;orbital++)sequence.push({name,orbital});
+  for(let orbital=0;orbital<count && count+orbital<inSubshell;orbital++)sequence.push({name,orbital});
+ }
+ return sequence;
+}
+
+function occupancyNow(){
+ const map={}; orbitalOrder.forEach(([name,count])=>map[name]=Array(count).fill(0));
+ placed.forEach(item=>map[item.name][item.orbital]++); return map;
+}
+
+function feedbackManip(message,kind=''){
+ const el=$('manualFeedback');el.className='feedback'+(kind?' '+kind:'');el.textContent=message;
+}
+
+function renderManip(){
+ const view=$('manualView'),occ=occupancyNow(); view.innerHTML='';
+ orbitalOrder.forEach(([name,count])=>{
+  const group=document.createElement('div');group.className='orbital-group';
+  group.innerHTML=`<div class="orbital-label">${name}</div>`;
+  const boxes=document.createElement('div');boxes.className='boxes';
+  for(let orbital=0;orbital<count;orbital++){
+   const box=document.createElement('button');box.type='button';box.className='drop-orb';
+   if(occ[name][orbital]===1){box.classList.add('filled');box.innerHTML='<span class="spin">↑</span>';}
+   if(occ[name][orbital]===2){box.classList.add('filled');box.innerHTML='<span class="spin">↑</span><span class="spin second">↓</span>';}
+   box.onclick=()=>placeElectron(name,orbital);
+   boxes.appendChild(box);
+  }
+  group.appendChild(boxes);view.appendChild(group);
+ });
+ const tray=$('electronTray');tray.innerHTML='';
+ for(let i=placed.length;i<targetElectrons;i++){
+  const token=document.createElement('button');token.type='button';token.className='electron-token';
+  token.textContent='•';token.draggable=true;token.dataset.token=String(tokenSerial++);
+  token.onclick=()=>{
+   selectedToken=token.dataset.token;
+   tray.querySelectorAll('.electron-token').forEach(t=>t.classList.toggle('chosen',t===token));
+  };
+  tray.appendChild(token);
+ }
+ $('placedCount').textContent=`${placed.length} / ${targetElectrons}`;
+ $('placedProgress').style.width=(placed.length/targetElectrons*100)+'%';
+}
+
+function placeElectron(name,orbital){
+ if(placed.length>=targetElectrons){feedbackManip('Tous les électrons sont placés.','good');return;}
+ const expected=expectedSequence(targetElectrons)[placed.length],occ=occupancyNow();
+ if(occ[name][orbital]>=2){feedbackManip('Règle de Pauli : max 2 électrons par orbitale.','bad');return;}
+ if(expected.name!==name||expected.orbital!==orbital){
+  feedbackManip('Respectez l’ordre de remplissage énergétique et la règle de Hund.','bad');
+  return;
+ }
+ placed.push({name,orbital});selectedToken=null;renderManip();
+ feedbackManip(placed.length===targetElectrons?'Atome complété avec succès !':'Électron placé.','good');
+}
+
+$('buildManual').onclick=()=>{ targetElectrons=Math.max(1,Math.min(36,+$('manualZ').value||7)); placed=[]; selectedToken=null; renderManip(); };
+$('undoElectron').onclick=()=>{ if(placed.length){placed.pop();selectedToken=null;renderManip();}};
+$('resetManip').onclick=()=>{ placed=[]; selectedToken=null; renderManip(); };
+$('checkManip').onclick=()=>{
+ if(placed.length===targetElectrons)feedbackManip('Configuration validée avec succès !','good');
+ else feedbackManip('Il reste des électrons à placer.','bad');
+};
+
+/* TABLEAU PÉRIODIQUE CLASSIQUE 18 COLONNES (Z = 1 à 36) */
+const tableGrid = [
+ [1, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 2],
+ [3, 4, '', '', '', '', '', '', '', '', '', '', 5, 6, 7, 8, 9, 10],
+ [11, 12, '', '', '', '', '', '', '', '', '', '', 13, 14, 15, 16, 17, 18],
+ [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+];
+
+function buildTable(){
+ let html='';
+ tableGrid.forEach(row => {
+  row.forEach(z => {
+   if(z === ''){
+    html += '<div class="ptcell empty"></div>';
+   } else {
+    let e = elements.find(x => x[0] === z);
+    html += `<div class="ptcell" data-z="${e[0]}"><span class="n">${e[0]}</span><b>${e[1]}</b><small>${e[2]}</small></div>`;
+   }
+  });
+ });
+ $('periodic').innerHTML = html;
+ $('periodic').querySelectorAll('.ptcell:not(.empty)').forEach(el => el.addEventListener('click', () => {
+  let z = +el.dataset.z, e = elements[z - 1], s = shells(z), occupiedCount = s.filter(x => x > 0).length;
+  const activeShellsNames = ['K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+  let details = s.map((val, idx) => val > 0 ? `${activeShellsNames[idx]}=${val}` : null).filter(Boolean).join(', ');
+  
+  $('periodic').querySelectorAll('.ptcell').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+  $('periodicInfo').innerHTML = `<b>${e[2]} (${e[1]})</b> — Z = ${z}<br>Configuration : <b>${conf(z)}</b><br>Couches principales occupées (${occupiedCount}) : <b>${details}</b>`;
+ }));
+}
+
+/* Quiz */
+const qs=[
+{q:'Combien d’électrons possède un atome neutre de Z = 8 ?',a:['6','8','10'],c:1},
+{q:'Capacité maximale de la couche K ?',a:['2','8','18'],c:0},
+{q:'Répartition par couches principales de Na (Z = 11) ?',a:['K=2 ; L=8 ; M=1','K=2 ; L=7 ; M=2','K=2 ; L=8 ; M=8'],c:0},
+{q:'Nombre d’orbitales dans une sous-couche p ?',a:['1','2','3'],c:2},
+{q:'Quel est le gaz noble de fin de période 4 (Z = 36) ?',a:['Argon','Krypton','Xénon'],c:1}
+];
+function buildQuiz(){
+ $('questions').innerHTML=qs.map((q,i)=>`<div class="task"><b>Mission ${i+1}.</b> ${q.q}<div style="margin-top:6px;">${q.a.map((a,j)=>`<label style="font-weight:400;margin-right:15px;"><input type="radio" name="q${i}" value="${j}"> ${a}</label>`).join('')}</div><div id="fb${i}" class="feedback"></div></div>`).join('');
+}
+$('checkQuiz').onclick=()=>{
+ let score=0;
+ qs.forEach((q,i)=>{
+  let v=document.querySelector(`input[name=q${i}]:checked`),fb=$('fb'+i);
+  if(v&&+v.value===q.c){score++;fb.className='feedback good';fb.textContent='Bonne réponse !';}
+  else{fb.className='feedback bad';fb.textContent='À revoir.';}
+ });
+ $('scoreText').textContent=`${score} bonne${score>1?'s':''} réponse${score>1?'s':''} sur 5`;
+ $('progressBar').style.width=(score/5*100)+'%';
+};
+
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active');
+ $(b.dataset.tab).classList.add('active');
+}));
+
+updateExplorer();updateConfig();renderManip();buildTable();buildQuiz();
+
+/* Classe interactive 3D avec les 3 orbitales p orthogonales et perpendiculaires */
+class Orbital3DViewer {
+  constructor(canvasId, type) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.type = type;
+    this.rotX = 0.3;
+    this.rotY = 0.4;
+    this.isDragging = false;
+    this.lastMouseX = 0;
+    this.lastMouseY = 0;
+    this.autoRotate = true;
+
+    this.initEvents();
+    this.animate();
+  }
+
+  initEvents() {
+    const w = this.canvas.parentElement;
+    w.addEventListener('mousedown', (e) => {
+      this.isDragging = true;
+      this.autoRotate = false;
+      this.lastMouseX = e.clientX;
+      this.lastMouseY = e.clientY;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!this.isDragging) return;
+      const dx = e.clientX - this.lastMouseX;
+      const dy = e.clientY - this.lastMouseY;
+      this.rotY += dx * 0.01;
+      this.rotX += dy * 0.01;
+      this.lastMouseX = e.clientX;
+      this.lastMouseY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => { this.isDragging = false; });
+    w.addEventListener('mouseleave', () => { this.autoRotate = true; });
+  }
+
+  project(x, y, z) {
+    let x1 = x * Math.cos(this.rotY) + z * Math.sin(this.rotY);
+    let z1 = -x * Math.sin(this.rotY) + z * Math.cos(this.rotY);
+    let y2 = y * Math.cos(this.rotX) - z1 * Math.sin(this.rotX);
+    let z2 = y * Math.sin(this.rotX) + z1 * Math.cos(this.rotX);
+
+    const fov = 160;
+    const scale = fov / (fov + z2 + 90);
+    const px = this.canvas.width / 2 + x1 * scale * 1.8;
+    const py = this.canvas.height / 2 + y2 * scale * 1.8;
+    return { x: px, y: py, z: z2 };
+  }
+
+  drawAxes() {
+    const origin = this.project(0, 0, 0);
+    const axes = [
+      { p: this.project(35, 0, 0), color: 'rgba(239, 68, 68, 0.5)' },
+      { p: this.project(0, -35, 0), color: 'rgba(34, 197, 94, 0.5)' },
+      { p: this.project(0, 0, 35), color: 'rgba(59, 130, 246, 0.5)' }
+    ];
+    axes.forEach(axis => {
+      this.ctx.beginPath();
+      this.ctx.moveTo(origin.x, origin.y);
+      this.ctx.lineTo(axis.p.x, axis.p.y);
+      this.ctx.strokeStyle = axis.color;
+      this.ctx.lineWidth = 1.2;
+      this.ctx.stroke();
+    });
+  }
+
+  generateMesh() {
+    const points = [];
+    const c1 = this.getColor(1), c2 = this.getColor(2);
+
+    if (this.type === 's') {
+      for (let u = 0; u < Math.PI * 2; u += 0.25) {
+        for (let v = -Math.PI / 2; v < Math.PI / 2; v += 0.25) {
+          const r = 22;
+          const x = r * Math.cos(v) * Math.cos(u);
+          const y = r * Math.cos(v) * Math.sin(u);
+          const z = r * Math.sin(v);
+          points.push({ x, y, z, color: c1, r: 2.1 });
+        }
+      }
+    } else if (this.type === 'p') {
+      for (let u = 0; u < Math.PI * 2; u += 0.25) {
+        for (let v = 0.05; v < Math.PI - 0.05; v += 0.2) {
+          const r = 26 * Math.abs(Math.cos(v));
+          points.push({ x: r * Math.cos(v), y: r * Math.sin(v) * Math.cos(u), z: r * Math.sin(v) * Math.sin(u), color: '#10b981', r: 1.6 });
+          points.push({ x: r * Math.sin(v) * Math.sin(u), y: r * Math.cos(v), z: r * Math.sin(v) * Math.cos(u), color: '#34d399', r: 1.6 });
+          points.push({ x: r * Math.sin(v) * Math.cos(u), y: r * Math.sin(v) * Math.sin(u), z: r * Math.cos(v), color: '#059669', r: 1.6 });
+        }
+      }
+    } else if (this.type === 'd') {
+      for (let u = 0; u < Math.PI * 2; u += 0.18) {
+        for (let v = 0.1; v < Math.PI; v += 0.18) {
+          const r = 34 * Math.sin(v) * Math.abs(Math.sin(2 * u));
+          const x = r * Math.sin(v) * Math.cos(u);
+          const z = r * Math.sin(v) * Math.sin(u);
+          const y = r * Math.cos(v);
+          points.push({ x, y, z, color: Math.sin(2 * u) >= 0 ? c1 : c2, r: 1.8 });
+        }
+      }
+    } else if (this.type === 'f') {
+      for (let u = 0; u < Math.PI * 2; u += 0.16) {
+        for (let v = 0.1; v < Math.PI; v += 0.16) {
+          const r = 35 * Math.sin(v) * Math.abs(Math.sin(3 * u));
+          const x = r * Math.sin(v) * Math.cos(u);
+          const z = r * Math.sin(v) * Math.sin(u);
+          const y = r * Math.cos(v);
+          points.push({ x, y, z, color: Math.sin(3 * u) >= 0 ? c1 : c2, r: 1.6 });
+        }
+      }
+    }
+    return points;
+  }
+
+  getColor(phase) {
+    if (this.type === 's') return '#2563eb';
+    if (this.type === 'p') return phase === 1 ? '#0f8b68' : '#046c4e';
+    if (this.type === 'd') return phase === 1 ? '#c08416' : '#9a670f';
+    if (this.type === 'f') return phase === 1 ? '#7952a3' : '#5b3d7b';
+  }
+
+  animate() {
+    if (this.autoRotate && !this.isDragging) this.rotY += 0.008;
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.drawAxes();
+
+    const points = this.generateMesh();
+    const projected = points.map(p => ({ ...this.project(p.x, p.y, p.z), color: p.color, radius: p.r }));
+    projected.sort((a, b) => b.z - a.z);
+
+    projected.forEach(p => {
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, Math.max(0.4, p.radius * (100 / (100 + p.z))), 0, Math.PI * 2);
+      this.ctx.fillStyle = p.color;
+      this.ctx.globalAlpha = Math.min(1, Math.max(0.3, 0.7 + p.z / 90));
+      this.ctx.fill();
+    });
+    this.ctx.globalAlpha = 1.0;
+
+    requestAnimationFrame(() => this.animate());
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new Orbital3DViewer('canvas-s', 's');
+  new Orbital3DViewer('canvas-p', 'p');
+  new Orbital3DViewer('canvas-d', 'd');
+  new Orbital3DViewer('canvas-f', 'f');
+});
+
+/* Animation de Klechkowski complète jusqu'à 7p avec surbrillance de la matrice */
+const labels=['1s','2s','2p','3s','3p','4s','3d','4p','5s','4d','5p','6s','4f','5d','6p','7s','5f','6d','7p'];
+let step=0;
+setInterval(()=>{
+ const el=$('fillingAnimation');
+ if(el){
+  el.innerHTML=labels.map((v,i)=>i===step?`<b class="current">${v}</b>`:`<b>${v}</b>`).join(' <span>→</span> ');
+  
+  document.querySelectorAll('.k-cell').forEach(c => c.classList.remove('active-highlight'));
+  const activeBox = document.querySelector(`.k-cell[data-sub="${labels[step]}"]`);
+  if(activeBox) activeBox.classList.add('active-highlight');
+
+  step=(step+1)%labels.length;
+ }
+},900);
+</script>
+</body>
+</html>
+<!-- Protection contre les raccourcis et le clic droit -->
+<script>
+document.addEventListener("keydown", function(event) {
+    if (event.key === "F12") {
+        event.preventDefault();
+    }
+
+    if (event.ctrlKey && event.shiftKey &&
+        ["I", "J", "C"].includes(event.key.toUpperCase())) {
+        event.preventDefault();
+    }
+
+    if (event.ctrlKey && event.key.toUpperCase() === "U") {
+        event.preventDefault();
+    }
+});
+
+document.addEventListener("contextmenu", function(event) {
+    event.preventDefault();
+});
+</script>
+</body>
